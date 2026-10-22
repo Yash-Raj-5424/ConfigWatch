@@ -6,6 +6,7 @@ option java_outer_classname = "ConfigProto";
 
 service ConfigService{
   rpc GetConfig (ConfigRequest) returns (ConfigResponse);
+  rpc WatchConfig (ConfigRequest) returns (stream ConfigResponse);
 }
 
 message ConfigRequest {
