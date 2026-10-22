@@ -5,6 +5,7 @@ import com.yash.config.proto.ConfigResponse;
 import com.yash.config.proto.ConfigServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 
 public class ConfigClient {
 
@@ -20,7 +21,7 @@ public class ConfigClient {
                     ConfigServiceGrpc.newBlockingStub(channel);
 
             ConfigRequest request = ConfigRequest.newBuilder()
-                    .setServiceName("order-service")
+                    .setServiceName("xyz-service")
                     .build();
 
             ConfigResponse response = stub.getConfig(request);
@@ -31,9 +32,10 @@ public class ConfigClient {
                         System.out.println(key + ": " + value);
                     }
             );
-
-            System.out.println("Version: " + response.getVersion());
-        }finally {
+        }catch (StatusRuntimeException e){
+            System.out.println("grpc error: " + e.getStatus());
+        }
+        finally {
             channel.shutdown();
         }
     }

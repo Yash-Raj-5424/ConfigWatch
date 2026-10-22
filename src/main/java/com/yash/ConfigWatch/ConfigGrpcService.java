@@ -15,15 +15,31 @@ public class ConfigGrpcService extends ConfigServiceGrpc.ConfigServiceImplBase{
 
         String serviceName = request.getServiceName();
 
-        ConfigResponse response = ConfigResponse.newBuilder()
-                .putValues("enabled", "true")
-                .putValues("maxRetries", "3")
-                .setVersion(1)
-                .build();
-
         System.out.println("Configuration requested by: " + serviceName);
 
-        responseObserver.onNext(response);
+        ConfigResponse.Builder response = ConfigResponse.newBuilder()
+                .setVersion(1);
+
+        switch (serviceName){
+            case "order-service" -> response
+                    .putValues("order.enabled", "true")
+                    .putValues("order.maxItems", "10");
+
+            case "payment-service" -> response
+                    .putValues("payment-enabled", "true")
+                    .putValues("payment.maxRetries", "3");
+
+            default -> {
+                responseObserver.onError(
+                        io.grpc.Status.NOT_FOUND
+                                .withDescription("Unknown service: " + serviceName)
+                                .asRuntimeException()
+                );
+                return;
+            }
+        }
+
+        responseObserver.onNext(response.build());
         responseObserver.onCompleted();
     }
 }
