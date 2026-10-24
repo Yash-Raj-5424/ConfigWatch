@@ -4,6 +4,7 @@ import com.yash.config.proto.ConfigRequest;
 import com.yash.config.proto.ConfigResponse;
 import com.yash.config.proto.ConfigServiceGrpc;
 import io.grpc.Status;
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 
 import java.util.concurrent.TimeUnit;
@@ -61,8 +62,18 @@ public class ConfigGrpcService extends ConfigServiceGrpc.ConfigServiceImplBase{
             return;
         }
 
+        @SuppressWarnings("unchecked")
+        ServerCallStreamObserver<ConfigResponse> serverObserver =
+                (ServerCallStreamObserver<ConfigResponse>) responseObserver;
+
         subscriptionManager.subscribe(serviceName, responseObserver);
-        System.out.println("initial config");
+
+        serverObserver.setOnCancelHandler(() -> {
+            subscriptionManager.unsubscribe(serviceName, responseObserver);
+            System.out.println("Unsubscribed: " + serviceName);
+        });
+
+        System.out.println("Sending initial config: " + config);
 
         responseObserver.onNext(config); // send right now
 
